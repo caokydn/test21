@@ -77,7 +77,22 @@ input[type=range]{ width:200px; }
   font-size:15px;
   border:2px dashed #ec4899;
   border-radius:8px;
-  background:#fff;
+
+  background: rgba(255,255,255,0.5);
+  /*  backdrop-filter: blur(2px);  */
+
+  color: #facc15;
+  font-weight: bold;
+  text-shadow: 
+    1px 1px 0 #92400e,
+   -1px 1px 0 #92400e,
+    1px -1px 0 #92400e,
+   -1px -1px 0 #92400e;
+
+  /* font-weight: bold; */
+
+
+
   cursor:move;
   user-select:none;
 }
@@ -340,14 +355,22 @@ function createInitialBoxes(count = 6){
 
 /* ================= DONE ================= */
 document.getElementById("doneBtn").onclick = ()=>{
-  drawEnabled = false;
+  /* drawEnabled = false;   */
   audioEnabled = false;
+
   audio.pause();
+
   playBtn.disabled = true;
-  replayBtn.disabled = true;
+  back10Btn.disabled = true;
+  forward10Btn.disabled = true;
+
+  document.getElementById("addBoxBtn").disabled = true;
   seekBar.disabled = true;
-  document.querySelectorAll(".wordBox").forEach(b=>b.contentEditable=false);
+
+  document.querySelectorAll(".wordBox")
+    .forEach(b => b.contentEditable = false);
 };
+
 
 /* ================= WELCOME ================= */
 const welcomeScreen = document.getElementById("welcomeScreen");
