@@ -1,0 +1,406 @@
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Listening & Fill the Words - Starters</title>
+
+<style>
+body{
+  margin:0;
+  font-family: "Comic Sans MS", sans-serif;
+  background:#fef3c7;
+  text-align:center;
+}
+
+h1{
+  margin:10px 0;
+  color:#ec4899;
+  font-size: 16px; /* ví dụ giảm xuống 28px */
+}
+
+/* --- AUDIO CONTROLS --- */
+#audioControls{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:10px;
+  margin:10px;
+  flex-wrap:wrap;
+}
+
+button{
+  padding:8px 16px;
+  font-size:16px;
+  border:none;
+  border-radius:10px;
+  cursor:pointer;
+  background:linear-gradient(90deg,#38bdf8,#0ea5e9);
+  color:#0f172a;
+  font-weight:bold;
+}
+
+button:disabled{
+  opacity:0.5;
+  cursor:not-allowed;
+}
+
+input[type=range]{ width:200px; }
+
+/* --- DRAW AREA --- */
+#drawWrapper{
+  position: relative;
+  max-width: 900px;
+  max-height: 90vh;
+  margin: 0 auto;
+  /*touch-action: none;   */
+}
+
+#bgImage{
+  width: 100%;
+  max-height: 90vh;
+  object-fit: contain;
+  display: block;
+  margin: 0 auto;
+  border-radius: 12px;
+}
+
+/* --- WORD BOX --- */
+.wordBox{
+  position:absolute;
+  touch-action: none;   
+  
+  min-width:60px;
+  min-height:18px;
+  padding:3px 5px;
+  font-size:15px;
+  border:2px dashed #ec4899;
+  border-radius:8px;
+
+  background: rgba(255,255,255,0.5);
+  /*  backdrop-filter: blur(2px);  */
+
+  color: #facc15;
+  font-weight: bold;
+  text-shadow: 
+    1px 1px 0 #92400e,
+   -1px 1px 0 #92400e,
+    1px -1px 0 #92400e,
+   -1px -1px 0 #92400e;
+
+  /* font-weight: bold; */
+
+
+
+  cursor:move;
+  user-select:none;
+}
+
+
+.wordBox:focus{
+  outline:none;
+  border-style:solid;
+}
+
+/* --- BOTTOM CONTROLS --- */
+#drawControls{
+  margin:12px;
+  display:flex;
+  justify-content:center;
+  gap:12px;
+  flex-wrap:wrap;
+}
+
+#doneBtn{
+  background:linear-gradient(90deg,#22c55e,#16a34a);
+}
+
+#addBoxBtn{
+  background:linear-gradient(90deg,#facc15,#eab308);
+}
+
+/* --- WELCOME SCREEN --- */
+#welcomeScreen {
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(135deg, #a5f3fc, #fbbfbc, #fde68a);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  color: #0f172a;
+  font-size: 16px;
+  text-align: center;
+}
+
+#welcomeScreen h2 {
+  font-size: 2.5em;
+  color: #f472b6;
+  margin-bottom: 20px;
+}
+
+#welcomeScreen input {
+  padding: 14px 28px;
+  font-size: 20px;
+  border: none;
+  border-radius: 14px;
+  margin-bottom: 20px;
+  width: 280px;
+  text-align: center;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+
+#welcomeScreen button {
+  padding: 14px 28px;
+  font-size: 20px;
+  font-weight: bold;
+  border: none;
+  border-radius: 14px;
+  cursor: pointer;
+  background: linear-gradient(90deg, #38bdf8, #0ea5e9);
+  color: #0f172a;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+</style>
+</head>
+
+<body>
+
+<div id="welcomeScreen">
+  <h2>🎉 Junior English chào mừng các em 🎉</h2>
+  <input type="text" id="studentName" placeholder="Nhập tên em...">
+  <button id="startBtn">Bắt đầu</button>
+</div>
+
+<div id="gameArea" style="display:none;">
+
+<h1>🎉Junior English, 113 Lê Trọng Tấn, Đà Nẵng - 0935.994359 🎉 <br>
+Bài tập Listening & Fill 
+</h1>
+
+  <div style="font-size:16px; font-weight:bold; color:#92400e;">
+    👉 Hướng dẫn: Các em kéo box vào vị trí thích hợp và điền từ
+  </div>
+
+<!-- AUDIO -->
+<div id="audioControls">
+  <button id="playBtn">▶️ Play</button>
+<!--  <button id="replayBtn">🔁 Replay</button> -->
+
+ <!-- 👇 thêm -->
+  <button id="back10Btn">⏪ 5s</button>
+  <button id="forward10Btn">⏩ 5s</button>
+
+
+  <input type="range" id="seekBar" min="0" max="100" value="0">
+  <span id="timeDisplay" style="font-weight:bold; min-width:90px;">00:00 / 00:00</span>
+</div>
+
+
+
+<!-- ACTION BUTTONS -->
+<div id="drawControls">
+  <button id="addBoxBtn">➕ Thêm Box</button>
+  <button id="doneBtn">✅ Hoàn thành</button>
+</div>
+
+<!-- IMAGE + BOX -->
+<div id="drawWrapper">
+  <img id="bgImage" src="flashcard/picture.png" alt="Listening picture">
+
+</div>
+
+<audio id="audio" src="flashcard/audio.mp3"></audio>
+
+<script>
+/* ================= IMAGE FALLBACK ================= */
+const img = document.getElementById("bgImage");
+img.onerror = ()=> img.src = "flashcard/picture.jpg";
+
+img.draggable = false;
+
+
+
+/* ================= AUDIO ================= */
+const audio = document.getElementById("audio");
+const playBtn = document.getElementById("playBtn");
+
+/*const replayBtn = document.getElementById("replayBtn"); */
+
+const seekBar = document.getElementById("seekBar");
+const timeDisplay = document.getElementById("timeDisplay");
+
+let audioEnabled = true;
+
+const back10Btn = document.getElementById("back10Btn");
+const forward10Btn = document.getElementById("forward10Btn");
+
+back10Btn.onclick = () => {
+  if(!audioEnabled) return;
+  audio.currentTime = Math.max(0, audio.currentTime - 5);
+};
+
+forward10Btn.onclick = () => {
+  if(!audioEnabled) return;
+  audio.currentTime = Math.min(audio.duration, audio.currentTime + 5);
+};
+
+
+
+playBtn.onclick = ()=>{
+  if(!audioEnabled) return;
+  if(audio.paused){
+    audio.play();
+    playBtn.textContent="⏸ Pause";
+  }else{
+    audio.pause();
+    playBtn.textContent="▶️ Play";
+  }
+};
+
+/*   replayBtn.onclick = ()=>{
+  if(!audioEnabled) return;
+  audio.currentTime = 0;
+  audio.play();
+  playBtn.textContent="⏸ Pause";
+};    
+*/
+
+audio.ontimeupdate = ()=>{
+  seekBar.value = (audio.currentTime / audio.duration) * 100 || 0;
+  timeDisplay.textContent =
+    formatTime(audio.currentTime) + " / " + formatTime(audio.duration);
+};
+
+seekBar.oninput = ()=>{
+  if(!audioEnabled) return;
+  audio.currentTime = (seekBar.value/100) * audio.duration;
+};
+
+function formatTime(sec){
+  const m = Math.floor(sec/60)||0;
+  const s = Math.floor(sec%60)||0;
+  return String(m).padStart(2,"0")+":"+String(s).padStart(2,"0");
+}
+
+/* ================= WORD BOX DRAG ================= */
+
+const wrapper = document.getElementById("drawWrapper");
+let activeBox=null, offsetX=0, offsetY=0;
+let drawEnabled = true;
+
+wrapper.addEventListener("focusin", e => {
+  if (
+    e.target.classList.contains("wordBox") &&
+    e.target.textContent.trim() === "Kéo và điền box"
+  ) {
+    e.target.textContent = "";
+  }
+});
+
+wrapper.addEventListener("pointerdown", e=>{
+  if(!drawEnabled) return;
+  if(e.target.classList.contains("wordBox")){
+    activeBox = e.target;
+    const r = activeBox.getBoundingClientRect();
+    offsetX = e.clientX - r.left;
+    offsetY = e.clientY - r.top;
+
+
+    // Chặn scroll / pan chỉ khi kéo box
+/*    e.preventDefault();  */
+
+  }
+});
+
+wrapper.addEventListener("pointermove", e=>{
+  if(activeBox){
+    const w = wrapper.getBoundingClientRect();
+    activeBox.style.left = (e.clientX - w.left - offsetX)+"px";
+    activeBox.style.top  = (e.clientY - w.top  - offsetY)+"px";
+  }
+});
+
+wrapper.addEventListener("pointerup", ()=> activeBox=null);
+wrapper.addEventListener("pointerleave", ()=> activeBox=null);
+
+/* ================= ADD BOX ================= */
+document.getElementById("addBoxBtn").onclick = ()=>{
+  if(!drawEnabled) return;
+  const box = document.createElement("div");
+  box.className = "wordBox";
+  box.contentEditable = true;
+  box.style.top = "20px";
+  box.style.left = "20px";
+  wrapper.appendChild(box);
+  box.focus();
+};
+
+function createInitialBoxes(count = 6){
+  for(let i = 0; i < count; i++){
+    const box = document.createElement("div");
+    box.className = "wordBox";
+    box.contentEditable = true;
+
+    // 👉 Chữ gợi ý sẵn
+    box.textContent = "Kéo và điền box";
+
+    box.style.top  = (20 + i*0) + "px";
+    box.style.left = "20px";
+
+    wrapper.appendChild(box);
+  }
+}
+
+
+
+
+/* ================= DONE ================= */
+document.getElementById("doneBtn").onclick = ()=>{
+  /* drawEnabled = false;   */
+  audioEnabled = false;
+
+  audio.pause();
+
+  playBtn.disabled = true;
+  back10Btn.disabled = true;
+  forward10Btn.disabled = true;
+
+  document.getElementById("addBoxBtn").disabled = true;
+  seekBar.disabled = true;
+
+  document.querySelectorAll(".wordBox")
+    .forEach(b => b.contentEditable = false);
+};
+
+
+
+/* ================= WELCOME ================= */
+const welcomeScreen = document.getElementById("welcomeScreen");
+const gameArea = document.getElementById("gameArea");
+document.getElementById("startBtn").onclick = ()=>{
+  if(!studentName.value.trim()){
+    alert("Vui lòng nhập tên!");
+    return;
+  }
+  welcomeScreen.style.display="none";
+  gameArea.style.display="block";
+
+
+// 👇 tạo sẵn 6 box
+createInitialBoxes(6);
+
+
+};
+</script>
+
+</div>
+  
+<div style="text-align:center; font-size:16px; font-weight:bold; margin-top:20px;">
+🎉 Junior English - 113 Lê Trọng Tấn, Đà Nẵng - 0935.994359 🎉
+</div>
+  
+</body>
+</html>
